@@ -1,6 +1,6 @@
 # SecretSheath API
 
-API to store and retrieve confidential development files (configuration, credentials)
+API to store and retrieve secret keys
 
 ## Routes
 
