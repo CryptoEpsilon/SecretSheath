@@ -3,57 +3,57 @@
 require 'json'
 require 'base64'
 require 'rbnacl'
+require 'time'
 
-module Credence
+module SecretSheath
   STORE_DIR = 'app/db/store'
 
   # Holds a full secret document
   class Key
     # Create a new document by passing in hash of attributes
     def initialize(new_key)
-      @id          = new_key['id'] || new_id
-      @filename    = new_key['filename']
+      @id = new_key['id'] || new_id
+      @keyname = new_key['keyname']
       @description = new_key['description']
-      @content     = new_key['content']
-      @secretkey         = new_key['key'] || new_secretkey
+      @time_created = Time.now.strftime('%Y-%m-%d %H:%M:%S.%L %z')
+      @secretkey = new_key['key'] || new_secretkey
     end
 
-    attr_reader :id, :filename, :description, :content, :secretkey
+    attr_reader :id, :keyname, :description, :time_created, :secretkey
 
     def to_json(options = {})
       JSON(
         {
           type: 'key',
           id:,
-          filename:,
+          keyname:,
           description:,
-          content:,
+          time_created:,
           secretkey:
-        },
-        options
+        }, options
       )
     end
 
     # File store must be setup once when application runs
     def self.setup
-      Dir.mkdir(Credence::STORE_DIR) unless Dir.exist? Credence::STORE_DIR
+      FileUtils.mkdir_p(SecretSheath::STORE_DIR)
     end
 
     # Stores document in file store
     def save
-      File.write("#{Credence::STORE_DIR}/#{id}.txt", to_json)
+      File.write("#{SecretSheath::STORE_DIR}/#{id}.txt", to_json)
     end
 
     # Query method to find one document
     def self.find(find_id)
-      key_file = File.read("#{Credence::STORE_DIR}/#{find_id}.txt")
+      key_file = File.read("#{SecretSheath::STORE_DIR}/#{find_id}.txt")
       Key.new JSON.parse(key_file)
     end
 
     # Query method to retrieve index of all documents
     def self.all
-      Dir.glob("#{Credence::STORE_DIR}/*.txt").map do |file|
-        file.match(%r{#{Regexp.quote(Credence::STORE_DIR)}/(.*)\.txt})[1]
+      Dir.glob("#{SecretSheath::STORE_DIR}/*.txt").map do |file|
+        file.match(%r{#{Regexp.quote(SecretSheath::STORE_DIR)}/(.*)\.txt})[1]
       end
     end
 
@@ -63,11 +63,9 @@ module Credence
       timestamp = Time.now.to_f.to_s
       Base64.urlsafe_encode64(RbNaCl::Hash.sha256(timestamp))[0..9]
     end
-    
+
     def new_secretkey
-      secret_key = Base64.urlsafe_encode64(RbNaCl::Random.random_bytes(RbNaCl::SecretBox.key_bytes))
+      Base64.urlsafe_encode64(RbNaCl::Random.random_bytes(RbNaCl::SecretBox.key_bytes))
     end
   end
 end
-
-

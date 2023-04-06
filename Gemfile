@@ -2,6 +2,9 @@
 
 source 'https://rubygems.org'
 
+#Utilities
+gem 'time'
+
 # Web API
 gem 'json'
 gem 'puma', '~>5.6'

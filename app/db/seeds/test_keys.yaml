@@ -1,0 +1,5 @@
+---
+- description: 'for testing'
+- keyname: 'secret_test_key'
+  description: 'for encrypt somthing'
+  secret_key: 'h4f04U2btjDYgnLx3_W_glPU0hvZC1BPGwwkaGIEMQg='

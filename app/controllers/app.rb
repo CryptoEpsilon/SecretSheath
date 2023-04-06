@@ -5,8 +5,8 @@ require 'json'
 
 require_relative '../models/key'
 
-module Credence
-  # Web controller for Credence API
+module SecretSheath
+  # Web controller for SecretSheath API
   class Api < Roda
     plugin :environments
     plugin :halt
@@ -20,7 +20,7 @@ module Credence
 
       routing.root do
         response.status = 200
-        { message: 'CredenceAPI up at /api/v1' }.to_json
+        { message: 'SecretSheath API up at /api/v1' }.to_json
       end
 
       routing.on 'api' do
@@ -48,7 +48,7 @@ module Credence
 
               if new_doc.save
                 response.status = 201
-                { message: 'Key saved', id: new_doc.id }.to_json
+                { message: 'Key saved', id: new_doc.id, time_created: new_doc.time_created }.to_json
               else
                 routing.halt 400, { message: 'Could not save key' }.to_json
               end
@@ -59,5 +59,3 @@ module Credence
     end
   end
 end
-
-
