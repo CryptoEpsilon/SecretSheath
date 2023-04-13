@@ -2,20 +2,16 @@
 
 require 'roda'
 require 'json'
+require_relative '../../require_app'
 
-require_relative '../models/key'
+require_app('models')
 
 module SecretSheath
   # Web controller for SecretSheath API
   class Api < Roda
-    plugin :environments
     plugin :halt
 
-    configure do
-      Key.setup
-    end
-
-    route do |routing| # rubocop:disable Metrics/BlockLength
+    route do |routing|
       response['Content-Type'] = 'application/json'
 
       routing.root do
@@ -23,35 +19,74 @@ module SecretSheath
         { message: 'SecretSheath API up at /api/v1' }.to_json
       end
 
-      routing.on 'api' do
-        routing.on 'v1' do
-          routing.on 'keys' do
-            # GET api/v1/keys/[id]
-            routing.get String do |id|
+      routing.on 'api/v1' do
+        @api_route = 'api/v1'
+        routing.on 'keys' do
+          @key_route = "#{@api_route}/keys"
+          routing.on String do |folder_name|
+            q = Folder.first(name: folder_name)
+            folder_id = q ? q.id : raise('Folder not found')
+            # GET api/v1/keys/[folder_name]/[key_id]
+            routing.get String do |key_id|
               response.status = 200
-              Key.find(id).to_json
-            rescue StandardError
-              routing.halt 404, { message: 'Key not found' }.to_json
+              key_info = Key.first(id: key_id, folder_id:)
+              key_info ? key_info.to_json : raise('Key not found')
+            rescue StandardError => e
+              routing.halt 404, { message: e.message }.to_json
             end
-
-            # GET api/v1/keys
+            # GET api/v1/keys/[folder_name]
             routing.get do
               response.status = 200
-              output = { key_ids: Key.all }
-              JSON.pretty_generate(output)
+              { keys: Key.where(folder_id:).all }.to_json
             end
-
-            # POST api/v1/keys
+            # POST api/v1/keys/[folder_name]
             routing.post do
-              new_data = JSON.parse(routing.body.read)
-              new_doc = Key.new(new_data)
-
-              if new_doc.save
+              new_req = JSON.parse(routing.body.read)
+              new_req[:content] = Key.create_key unless new_req.key?(:content)
+              new_req[:key_alias] = Key.create_alais(new_req[:content]) unless new_req.key?(:key_alias)
+              folder = Folder.first(name: folder_name)
+              new_key = folder.add_key(new_req)
+              if new_key
                 response.status = 201
-                { message: 'Key saved', id: new_doc.id, time_created: new_doc.time_created }.to_json
+                { message: 'Key saved',
+                  id: new_key.id,
+                  name: new_key.name,
+                  description: new_key.description,
+                  key_alias: new_key.key_alias,
+                  created_at: new_key.created_at }.to_json
               else
                 routing.halt 400, { message: 'Could not save key' }.to_json
               end
+            end
+          rescue StandardError => e
+            routing.halt 404, { message: e.message }.to_json
+          end
+        end
+        routing.on 'folders' do
+          @folder_route = "#{@api_route}/folders"
+          # GET api/v1/folders/[name]
+          routing.get String do |folder_name|
+            folder = Folder.first(name: folder_name)
+            folder ? folder.to_json : raise('Folder not found')
+          rescue StandardError => e
+            routing.halt 404, { message: e.message }.to_json
+          end
+          # GET api/v1/folders
+          routing.get do
+            all_folders = { folders: Folder.all }
+            JSON.pretty_generate(all_folders)
+          end
+          # POST api/v1/folders
+          routing.post do
+            new_req = JSON.parse(routing.body.read)
+            new_folder = Folder.new(new_req)
+            if new_folder.save
+              response.status = 201
+              response['Location'] = "#{@folder_route}/#{new_folder.id}"
+              { message: 'Folder create',
+                id: new_folder.id,
+                name: new_folder.name,
+                created_at: new_folder.created_at }.to_json
             end
           end
         end

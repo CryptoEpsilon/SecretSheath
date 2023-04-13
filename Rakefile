@@ -57,11 +57,16 @@ namespace :db do
   task :migrate => [:load, :print_env] do
     puts 'Migrating database to latest'
     Sequel::Migrator.run(@app.DB, 'app/db/migrations')
+    require_relative 'app/models/folder'
+    unless SecretSheath::Folder.first(name: 'default')
+      SecretSheath::Folder.create(name: 'default',
+                                  description: 'Default folder')
+    end
   end
 
   desc 'Destroy data in database; maintain tables'
   task :delete => :load_models do
-    SecretSheath::Project.dataset.destroy
+    SecretSheath::Folder.dataset.destroy
   end
 
   desc 'Delete dev or test database file'
