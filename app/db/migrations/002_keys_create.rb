@@ -5,7 +5,7 @@ require 'sequel'
 Sequel.migration do
   change do
     create_table(:keys) do
-      primary_key :id
+      uuid :id, primary_key :true
       foreign_key :folder_id, table: :folders
       String :key_alias, unique: true, null: false
       String :name

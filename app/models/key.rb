@@ -10,7 +10,8 @@ module SecretSheath
   class Key < Sequel::Model
     many_to_one :folders
     plugin :timestamps
-
+    plugin :uuid, field: :id
+	
     # rubocop:disable Metrics/MethodLength
     def to_json(options = {})
       JSON(
