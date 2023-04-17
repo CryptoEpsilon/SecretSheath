@@ -3,11 +3,15 @@
 require 'roda'
 require 'figaro'
 require 'sequel'
+require './app/lib/secure_db'
 
 module SecretSheath
   # Configuration for the API
   class Api < Roda
     plugin :environments
+
+  # rubocop:disable Lint/ConstantDefinitionInBlock
+    configure do
 
     # load config secrets into local environment variables (ENV)
     Figaro.application = Figaro::Application.new(
@@ -24,8 +28,23 @@ module SecretSheath
     DB = Sequel.connect("#{db_url}?encoding=utf8")
     def self.DB = DB # rubocop:disable Naming/MethodName
 
+    # HTTP Request logging
+    configure :development, :production do
+      plugin :common_logger, $stdout
+    end
+
+    # Custom events logging
+    LOGGER = Logger.new($stderr)
+    def self.logger = LOGGER
+
+    # Load crypto keys
+    SecureDB.setup(ENV.delete('DB_KEY'))
+   end
+
+
     configure :development, :test do
       require 'pry'
+      logger.level = Logger::ERROR
     end
   end
 end

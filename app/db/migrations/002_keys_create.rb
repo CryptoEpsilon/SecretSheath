@@ -9,8 +9,8 @@ Sequel.migration do
       foreign_key :folder_id, table: :folders
       String :key_alias, unique: true, null: false
       String :name
-      String :description
-      String :content, null: false
+      String :description_secure
+      String :content_secure, null: false
 
       DateTime :created_at
       DateTime :updated_at
