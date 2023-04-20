@@ -12,25 +12,30 @@ module SecretSheath
     plugin :timestamps
     plugin :uuid, field: :id
     plugin :whitelist_security
-    set_allowed_columns :name, :description, :content
+    set_allowed_columns :name, :description, :content, :alias
 
-     # Secure getters and setters
+    # Secure getters and setters
     def description
-      SecureDB.decrypt(description_secure)
+      SecureDB.decrypt(description_encrypted)
     end
 
     def description=(plaintext)
-      self.description_secure = SecureDB.encrypt(plaintext)
+      self.description_encrypted = SecureDB.encrypt(plaintext)
     end
 
     def content
-      SecureDB.decrypt(content_secure)
+      SecureDB.decrypt(content_encrypted)
     end
 
     def content=(plaintext)
-      self.content_secure = SecureDB.encrypt(plaintext)
-    end	
+      self.content_encrypted = SecureDB.encrypt(plaintext)
+    end
 
+    def before_save
+      self.content = SecureDB.generate_key if content.nil?
+      self.alias = id.to_s[0..7]
+      super
+    end
 
     # rubocop:disable Metrics/MethodLength
     def to_json(options = {})
@@ -42,8 +47,7 @@ module SecretSheath
               id:,
               name:,
               description:,
-              key_alias:,
-              content:,
+              alias:,
               created_at:
             }
           }
@@ -51,13 +55,5 @@ module SecretSheath
       )
     end
     # rubocop:enable Metrics/MethodLength
-
-    def self.create_key
-      Base64.urlsafe_encode64(RbNaCl::Random.random_bytes(RbNaCl::SecretBox.key_bytes))
-    end
-
-    def self.create_alais(input)
-      Base64.urlsafe_encode64(RbNaCl::Hash.sha256(input))[0..9]
-    end
   end
 end

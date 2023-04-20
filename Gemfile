@@ -41,3 +41,6 @@ gem 'rerun'
 
 # Quality
 gem 'rubocop'
+
+# logger
+gem 'logger'

@@ -9,6 +9,16 @@ module SecretSheath
     one_to_many :keys
     plugin :association_dependencies, keys: :destroy
     plugin :timestamps
+    plugin :whitelist_security
+    set_allowed_columns :name, :description
+
+    def description
+      SecureDB.decrypt(description_encrypted)
+    end
+
+    def description=(plaintext)
+      self.description_encrypted = SecureDB.encrypt(plaintext)
+    end
 
     # rubocop:disable Metrics/MethodLength
     def to_json(options = {})

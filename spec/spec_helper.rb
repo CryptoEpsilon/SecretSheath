@@ -7,7 +7,7 @@ require 'minitest/rg'
 require 'yaml'
 
 require_relative 'test_load_all'
-require_relative '../app/models/folder'
+require_relative '../app/lib/secure_db'
 
 def wipe_database
   app.DB[:keys].delete

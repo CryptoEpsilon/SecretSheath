@@ -5,12 +5,12 @@ require 'sequel'
 Sequel.migration do
   change do
     create_table(:keys) do
-      uuid :id, primary_key :true
+      uuid :id, primary_key: true
       foreign_key :folder_id, table: :folders
-      String :key_alias, unique: true, null: false
+      String :alias, unique: true, null: false
       String :name
-      String :description_secure
-      String :content_secure, null: false
+      String :description_encrypted
+      String :content_encrypted, null: false
 
       DateTime :created_at
       DateTime :updated_at

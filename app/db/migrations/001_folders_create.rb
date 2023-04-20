@@ -5,10 +5,10 @@ require 'sequel'
 Sequel.migration do
   change do
     create_table(:folders) do
-      primary_key :id	
-      
+      primary_key :id
+
       String :name, null: false
-      String :description
+      String :description_encrypted
 
       DateTime :created_at
       DateTime :updated_at

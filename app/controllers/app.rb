@@ -26,6 +26,7 @@ module SecretSheath
           routing.on String do |folder_name|
             q = Folder.first(name: folder_name)
             folder_id = q ? q.id : raise('Folder not found')
+
             # GET api/v1/keys/[folder_name]/[key_id]
             routing.get String do |key_id|
               response.status = 200
@@ -34,36 +35,44 @@ module SecretSheath
             rescue StandardError => e
               routing.halt 404, { message: e.message }.to_json
             end
+
             # GET api/v1/keys/[folder_name]
             routing.get do
               response.status = 200
               { keys: Key.where(folder_id:).all }.to_json
             end
+
             # POST api/v1/keys/[folder_name]
             routing.post do
               new_req = JSON.parse(routing.body.read)
-              new_req[:content] = Key.create_key unless new_req.key?(:content)
-              new_req[:key_alias] = Key.create_alais(new_req[:content]) unless new_req.key?(:key_alias)
+              # new_req[:content] = Key.create_key unless new_req.key?(:content)
+              new_req[:alias] = SecureRandom.uuid[0..7]
               folder = Folder.first(name: folder_name)
               new_key = folder.add_key(new_req)
-              if new_key
-                response.status = 201
-                { message: 'Key saved',
-                  id: new_key.id,
-                  name: new_key.name,
-                  description: new_key.description,
-                  key_alias: new_key.key_alias,
-                  created_at: new_key.created_at }.to_json
-              else
-                routing.halt 400, { message: 'Could not save key' }.to_json
-              end
+              raise 'Could not save key' unless new_key
+
+              response.status = 201
+              response['Location'] = "#{@key_route}/#{folder_name}/#{new_key.id}"
+              { message: 'Key saved',
+                id: new_key.id,
+                name: new_key.name,
+                description: new_key.description,
+                alias: new_key.alias,
+                created_at: new_key.created_at }.to_json
+            rescue Sequel::MassAssignmentRestriction
+              Api.logger.warn "[MASS-ASSIGNMENT]: Attempt to set disallowed column: #{new_req}"
+              routing.halt 400, { message: 'Invalid key request' }.to_json
+            rescue StandardError => e
+              routing.halt 500, { message: e.message }.to_json
             end
           rescue StandardError => e
             routing.halt 404, { message: e.message }.to_json
           end
         end
+
         routing.on 'folders' do
           @folder_route = "#{@api_route}/folders"
+
           # GET api/v1/folders/[name]
           routing.get String do |folder_name|
             folder = Folder.first(name: folder_name)
@@ -71,23 +80,30 @@ module SecretSheath
           rescue StandardError => e
             routing.halt 404, { message: e.message }.to_json
           end
+
           # GET api/v1/folders
           routing.get do
             all_folders = { folders: Folder.all }
             JSON.pretty_generate(all_folders)
           end
+
           # POST api/v1/folders
           routing.post do
             new_req = JSON.parse(routing.body.read)
             new_folder = Folder.new(new_req)
-            if new_folder.save
-              response.status = 201
-              response['Location'] = "#{@folder_route}/#{new_folder.id}"
-              { message: 'Folder create',
-                id: new_folder.id,
-                name: new_folder.name,
-                created_at: new_folder.created_at }.to_json
-            end
+            raise 'Could create folder' unless new_folder.save
+
+            response.status = 201
+            response['Location'] = "#{@folder_route}/#{new_folder.id}"
+            { message: 'Folder create',
+              id: new_folder.id,
+              name: new_folder.name,
+              created_at: new_folder.created_at }.to_json
+          rescue Sequel::MassAssignmentRestriction
+            Api.logger.warn "[MASS-ASSIGNMENT]: Attempt to set disallowed column: #{new_req}"
+            routing.halt 400, { message: 'Invalid folder request' }.to_json
+          rescue StandardError => e
+            routing.halt 500, { message: e.message }.to_json
           end
         end
       end
