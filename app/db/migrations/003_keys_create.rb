@@ -7,6 +7,7 @@ Sequel.migration do
     create_table(:keys) do
       uuid :id, primary_key: true
       foreign_key :folder_id, table: :folders
+
       String :alias, unique: true, null: false
       String :name
       String :description_encrypted

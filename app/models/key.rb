@@ -9,6 +9,15 @@ module SecretSheath
   # Holds a full secret document
   class Key < Sequel::Model
     many_to_one :folder
+
+    many_to_many :sharers,
+                 class: :'SecretSheath::Account',
+                 join_table: :shared_keys,
+                 left_key: :key_id, right_key: :sharer_id
+    
+    plugin :association_dependencies,
+          sharers: :nullify
+
     plugin :timestamps
     plugin :uuid, field: :id
     plugin :whitelist_security

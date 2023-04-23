@@ -6,7 +6,8 @@ Sequel.migration do
   change do
     create_table(:folders) do
       primary_key :id
-
+      foreign_key :owner_id, :accounts
+      
       String :name, null: false
       String :description_encrypted
 
