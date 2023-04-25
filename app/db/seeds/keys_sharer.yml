@@ -1,0 +1,8 @@
+---
+  - key_alias: test1
+    sharer_email:
+      - Dog@gmail.com
+      - Bear@nthu.edu.tw
+  - key_alias: test2
+    sharer_email:
+      - Morning@nthu.edu.tw

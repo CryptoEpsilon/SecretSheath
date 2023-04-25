@@ -1,0 +1,10 @@
+---
+- username: Morning
+  email: Morning@nthu.edu.tw
+  password: Morning$$w0rd
+- username: Bear
+  email: Bear@nthu.edu.tw
+  password: randompass
+- username: Dog
+  email: Dog@gmail.com
+  password: passrand
