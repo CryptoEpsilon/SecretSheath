@@ -1,8 +1,8 @@
 ---
   - username: Dog
     folder_name:
-      - folder_1
+      - default
   - username: Bear
     folder_name:
-      - folder_2
+      - default
 

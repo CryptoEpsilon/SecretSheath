@@ -8,7 +8,6 @@ describe 'Test Key Handling' do
   before do
     wipe_database
 
-    SecretSheath::Folder.create(name: 'default', description: 'default folder').save
     DATA[:folders].each do |folder|
       SecretSheath::Folder.create(folder).save
     end
@@ -35,7 +34,7 @@ describe 'Test Key Handling' do
       _(result['keys'].count).must_equal 2
     end
 
-    DATA[:folders].zip(DATA[:keys]).each do |folder, key|
+    DATA[:folders][1..2].zip(DATA[:keys]).each do |folder, key|
       it "HAPPY: should retrieve key's information in folder: \"#{folder['name']}\"" do
         f = SecretSheath::Folder.first(name: folder['name'])
         new_key = f.add_key(key)

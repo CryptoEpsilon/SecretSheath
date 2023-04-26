@@ -1,0 +1,8 @@
+---
+  - name: testing
+    sharer_email:
+      - Morning@gmail.com
+      - Bear@nthu.edu.tw
+  - name: secret_test_key
+    sharer_email:
+      - Dog@nthu.edu.tw

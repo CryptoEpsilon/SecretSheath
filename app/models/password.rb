@@ -3,7 +3,7 @@
 require 'base64'
 require_relative '../lib/key_stretch'
 
-module Credence
+module SecretSheath
   # Digests and checks passwords using salt and password-appropriate hash
   class Password
     extend KeyStretch

@@ -64,5 +64,12 @@ describe 'Test Folder Handling' do
       _(result['message']).must_equal 'Invalid folder request'
       _(last_response.headers['Location']).must_be_nil
     end
+
+    it 'SECURITY: should prevent SQL injection' do
+      get '/api/v1/folders/1%3B%20DROP%20TABLE%20folders'
+
+      _(last_response.status).must_equal 404
+      _(last_response.body['data']).must_be_nil
+    end
   end
 end

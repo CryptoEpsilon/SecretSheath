@@ -1,10 +1,10 @@
 ---
 - username: Morning
-  email: Morning@nthu.edu.tw
   password: Morning$$w0rd
+  email: Morning@gmail.com
 - username: Bear
-  email: Bear@nthu.edu.tw
   password: randompass
+  email: Bear@nthu.edu.tw
 - username: Dog
-  email: Dog@gmail.com
   password: passrand
+  email: Dog@nthu.edu.tw

@@ -38,7 +38,7 @@ end
 
 def create_keys
   key_info_each = KEY_INFO.each
-  floders_cycle = SecretSheath::Floder.all.cycle
+  folders_cycle = SecretSheath::Folder.all.cycle
   loop do
     k_info = key_info_each.next
     folder = folders_cycle.next
@@ -51,7 +51,7 @@ end
 def add_sharers
   shar_info = SHARER_INFO
   shar_info.each do |shar|
-    key = SecretSheath::Key.first(alias: shar['key_alias'])
+    key = SecretSheath::Key.first(name: shar['name'])
     shar['sharer_email'].each do |email|
       SecretSheath::AddSharerToKey.call(
         email:, key_id: key.id

@@ -10,10 +10,10 @@ describe 'Test key Handling' do
   end
 
   it 'HAPPY: should retrieve correct data from database' do
-    data = DATA[:keys][0]
-    folder = SecretSheath::Folder.first(name: 'default')
+    data = DATA[:keys][0].clone
+    folder_id = SecretSheath::Folder.first(name: 'default').id
     data[:content] = SecureDB.generate_key
-    key = folder.add_key(data)
+    key = SecretSheath::CreateKeyForFolder.call(folder_id:, key_data: data)
     _(key.name).must_equal data['name']
     _(key.description).must_equal data['description']
     _(key.content).must_equal data[:content]
@@ -23,17 +23,16 @@ describe 'Test key Handling' do
 
   it 'SECURITY: should not use deterministic integer' do
     data = DATA[:keys][0]
-    folder = SecretSheath::Folder.first(name: 'default')
-    key = folder.add_key(data)
+    folder_id = SecretSheath::Folder.first(name: 'default').id
+    key = SecretSheath::CreateKeyForFolder.call(folder_id:, key_data: data)
 
     _(key.id.is_a?(Numeric)).must_equal false
   end
 
   it 'SECURITY: should not store key in plain text' do
     data = DATA[:keys][0]
-    folder = SecretSheath::Folder.first(name: 'default')
-    data[:content] = SecureDB.generate_key
-    folder.add_key(data)
+    folder_id = SecretSheath::Folder.first(name: 'default').id
+    SecretSheath::CreateKeyForFolder.call(folder_id:, key_data: data)
     stored_key = app.DB[:keys].first
 
     _(stored_key[:content_encrypted]).wont_equal data['content']

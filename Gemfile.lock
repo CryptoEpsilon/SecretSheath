@@ -62,6 +62,8 @@ GEM
       rubocop-ast (>= 0.4.0)
     ruby-progressbar (1.13.0)
     sequel (5.67.0)
+    sequel-seed (1.1.2)
+      sequel (>= 4.49.0)
     sqlite3 (1.6.2-x86_64-linux)
     thor (1.2.1)
     time (0.2.2)
@@ -89,6 +91,7 @@ DEPENDENCIES
   rubocop
   rubocop-performance
   sequel (~> 5.55)
+  sequel-seed
   sqlite3 (~> 1.4)
   time
 

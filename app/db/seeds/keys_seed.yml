@@ -1,7 +1,5 @@
 ---
 - name: 'testing'
   description: 'tesing'
-  alias: 'test1'
 - name: 'secret_test_key'
   description: 'for encrypt somthing'
-  alias: 'test2'

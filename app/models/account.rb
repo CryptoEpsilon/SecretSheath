@@ -10,7 +10,7 @@ module SecretSheath
     one_to_many :owned_folders, class: :'SecretSheath::Folder', key: :owner_id
     many_to_many :sharers,
                  class: :'SecretSheath::Key',
-                 join_table: :shared_keys,
+                 join_table: :accounts_keys,
                  left_key: :sharer_id, right_key: :key_id
 
     plugin :association_dependencies,
@@ -22,7 +22,7 @@ module SecretSheath
 
     plugin :timestamps, update_on_create: true
 
-    def projects
+    def keys
       owned_folders + sharers
     end
 

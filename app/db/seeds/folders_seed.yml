@@ -3,3 +3,5 @@
   description: "test folder 1"
 - name: "secret"
   description: "held secret.."
+- name: "default"
+  description: "default folder"

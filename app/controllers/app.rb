@@ -8,7 +8,7 @@ require_app('models')
 
 module SecretSheath
   # Web controller for SecretSheath API
-  class Api < Roda
+  class Api < Roda # rubocop:disable Metrics/ClassLength
     plugin :halt
 
     route do |routing|
@@ -22,6 +22,19 @@ module SecretSheath
       routing.on 'api/v1' do
         @api_route = 'api/v1'
 
+        # POST api/v1/login
+        # routing.on 'login' do
+        #   routing.post do
+        #     credentials = JSON.parse(routing.body.read)
+        #     account = Account.first(username: credentials['username'])
+        #     raise('Username or Password is invalid') unless account || account.password?(credentials['password'])
+
+        #     { message: 'Login successful', data: account }.to_json
+        #   rescue StandardError
+        #     routing.halt 401, { message: error.message }.to_json
+        #   end
+        # end
+
         routing.on 'accounts' do
           @account_route = "#{@api_route}/accounts"
 
@@ -30,8 +43,8 @@ module SecretSheath
             routing.get do
               account = Account.first(username:)
               account ? account.to_json : raise('Account not found')
-            rescue StandardError
-              routing.halt 404, { message: error.message }.to_json
+            rescue StandardError => e
+              routing.halt 404, { message: e.message }.to_json
             end
           end
 
@@ -41,6 +54,7 @@ module SecretSheath
             new_account = Account.new(new_data)
             raise('Could not save account') unless new_account.save
 
+            # new_account.add_owned_folder(name: 'default', description: 'Default folder')
             response.status = 201
             response['Location'] = "#{@account_route}/#{new_account.id}"
             { message: 'Account created', data: new_account }.to_json
@@ -77,10 +91,9 @@ module SecretSheath
             # POST api/v1/keys/[folder_name]
             routing.post do
               new_req = JSON.parse(routing.body.read)
-              # new_req[:content] = Key.create_key unless new_req.key?(:content)
-              new_req[:alias] = SecureRandom.uuid[0..7]
-              folder = Folder.first(name: folder_name)
-              new_key = folder.add_key(new_req)
+              new_key = CreateKeyForFolder.call(folder_id:, key_data: new_req)
+              # folder = Folder.first(name: folder_name)
+              # new_key = folder.add_key(new_req)
               raise 'Could not save key' unless new_key
 
               response.status = 201

@@ -9,9 +9,10 @@ module SecretSheath
     end
 
     def self.call(email:, key_id:)
+      # binding.pry
       sharer = Account.first(email:)
       key = Key.first(id: key_id)
-      raise(OwnerNotSharerError) if key.owner.id == sharer.id
+      raise(OwnerNotSharerError) if key.folder.owner_id == sharer.id
 
       key.add_sharer(sharer)
     end
