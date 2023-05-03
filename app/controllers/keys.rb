@@ -34,8 +34,6 @@ module SecretSheath
             routing.post do
               new_req = JSON.parse(routing.body.read)
               new_key = CreateKeyForFolder.call(folder_id:, key_data: new_req)
-              # folder = Folder.first(name: folder_name)
-              # new_key = folder.add_key(new_req)
               raise 'Could not save key' unless new_key
 
               response.status = 201

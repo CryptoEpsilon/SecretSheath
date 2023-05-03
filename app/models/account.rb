@@ -26,6 +26,14 @@ module SecretSheath
       owned_folders + sharers
     end
 
+    def masterkey_salt
+      SecureDB.decrypt(masterkey_salt_encrypted)
+    end
+
+    def masterkey_salt=(plaintext)
+      self.masterkey_salt_encrypted = SecureDB.encrypt(plaintext)
+    end
+
     def password=(new_password)
       self.password_digest = Password.digest(new_password)
     end
@@ -33,6 +41,11 @@ module SecretSheath
     def password?(try_password)
       digest = SecretSheath::Password.from_digest(password_digest)
       digest.correct?(try_password)
+    end
+
+    def before_save
+      self.masterkey_salt = Base64.strict_encode64(Password.new_salt)
+      super
     end
 
     def to_json(options = {})

@@ -21,7 +21,7 @@ module SecretSheath
     plugin :timestamps
     plugin :uuid, field: :id
     plugin :whitelist_security
-    set_allowed_columns :name, :description, :content, :alias
+    set_allowed_columns :name, :description, :content
 
     # Secure getters and setters
     def description

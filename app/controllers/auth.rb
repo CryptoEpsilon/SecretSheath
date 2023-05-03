@@ -12,7 +12,13 @@ module SecretSheath
         routing.post do
           credentials = JSON.parse(request.body.read, symbolize_names: true)
           auth_account = AuthenticateAccount.call(credentials)
-          auth_account.to_json
+          {
+            type: 'account',
+            id: auth_account.id,
+            username: auth_account.username,
+            email: auth_account.email,
+            masterkey_salt: auth_account.masterkey_salt
+          }.to_json
         rescue UnauthorizedError => e
           puts [e.class, e.message].join ': '
           routing.halt '403', { message: 'Invalid credentials' }.to_json
