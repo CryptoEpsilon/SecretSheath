@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 source 'https://rubygems.org'
+ruby File.read('.ruby-version').strip
 
 # Utilities
 gem 'time'
@@ -21,9 +22,14 @@ gem 'rbnacl', '~>7.1'
 # Database
 gem 'hirb'
 gem 'sequel', '~>5.55'
+
 group :development, :test do
   gem 'sequel-seed'
   gem 'sqlite3', '~>1.4'
+end
+
+group :production do
+  gem 'pg'
 end
 
 # Performance
