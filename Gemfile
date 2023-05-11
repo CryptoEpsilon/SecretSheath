@@ -17,6 +17,7 @@ gem 'rake'
 
 # Security
 gem 'bundler-audit'
+gem 'rack-ssl-enforcer'
 gem 'rbnacl', '~>7.1'
 
 # Database

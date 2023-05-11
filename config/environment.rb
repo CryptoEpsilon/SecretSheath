@@ -4,6 +4,7 @@ require 'roda'
 require 'figaro'
 require 'logger'
 require 'sequel'
+require 'rack/ssl-enforcer'
 require './app/lib/secure_db'
 
 module SecretSheath
@@ -27,6 +28,11 @@ module SecretSheath
       db_url = ENV.delete('DATABASE_URL')
       DB = Sequel.connect("#{db_url}?encoding=utf8")
       def self.DB = DB # rubocop:disable Naming/MethodName
+
+      # Enforce SSL
+      configure :production do
+        use Rack::SslEnforcer, hsts: true
+      end
 
       # HTTP Request logging
       configure :development, :production do
