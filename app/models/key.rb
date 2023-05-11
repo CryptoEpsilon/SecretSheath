@@ -10,16 +10,16 @@ module SecretSheath
   class Key < Sequel::Model
     many_to_one :folder
 
-    many_to_many :sharers,
+    many_to_many :shared_keys,
                  class: :'SecretSheath::Account',
                  join_table: :accounts_keys,
                  left_key: :key_id, right_key: :sharer_id
 
     plugin :association_dependencies,
-           sharers: :nullify
+           shared_keys: :nullify
 
     plugin :timestamps
-    plugin :uuid, field: :id
+    plugin :uuid, field: :alias
     plugin :whitelist_security
     set_allowed_columns :name, :description, :content
 
@@ -42,7 +42,7 @@ module SecretSheath
 
     def before_save
       self.content = SecureDB.generate_key if content.nil?
-      self.alias = id.to_s[0..7]
+      self.short_alias = self.alias.to_s[0..7]
       super
     end
 
@@ -57,6 +57,7 @@ module SecretSheath
               name:,
               description:,
               alias:,
+              short_alias:,
               created_at:
             }
           }

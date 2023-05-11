@@ -8,6 +8,7 @@ module SecretSheath
   # Models a registered account
   class Account < Sequel::Model
     one_to_many :owned_folders, class: :'SecretSheath::Folder', key: :owner_id
+
     many_to_many :sharers,
                  class: :'SecretSheath::Key',
                  join_table: :accounts_keys,

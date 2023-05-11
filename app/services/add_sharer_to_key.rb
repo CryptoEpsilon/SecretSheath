@@ -14,7 +14,7 @@ module SecretSheath
       key = Key.first(id: key_id)
       raise(OwnerNotSharerError) if key.folder.owner_id == sharer.id
 
-      key.add_sharer(sharer)
+      key.add_shared_key(sharer)
     end
   end
 end

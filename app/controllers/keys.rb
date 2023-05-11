@@ -43,6 +43,7 @@ module SecretSheath
             name: new_key.name,
             description: new_key.description,
             alias: new_key.alias,
+            short_alias: new_key.short_alias,
             created_at: new_key.created_at }.to_json
         rescue Sequel::MassAssignmentRestriction
           Api.logger.warn "[MASS-ASSIGNMENT]: Attempt to set disallowed column: #{new_req}"
