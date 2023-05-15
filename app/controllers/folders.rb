@@ -20,8 +20,11 @@ module SecretSheath
 
       # GET api/v1/folders
       routing.get do
-        all_folders = { folders: Folder.all }
-        JSON.pretty_generate(all_folders)
+        account = Account.first(username: @auth_account['username'])
+        folders = account.projects
+        JSON.pretty_generate(data: folders)
+      rescue StandardError
+        routing.halt 403, { message: 'Could not find any folders' }.to_json
       end
 
       # POST api/v1/folders

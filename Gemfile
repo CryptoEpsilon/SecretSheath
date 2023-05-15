@@ -33,6 +33,9 @@ group :production do
   gem 'pg'
 end
 
+# External Services
+gem 'http'
+
 # Performance
 gem 'rubocop-performance'
 

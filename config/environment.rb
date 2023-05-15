@@ -5,7 +5,7 @@ require 'figaro'
 require 'logger'
 require 'sequel'
 require 'rack/ssl-enforcer'
-require './app/lib/secure_db'
+require_app('lib')
 
 module SecretSheath
   # Configuration for the API
@@ -45,6 +45,7 @@ module SecretSheath
 
       # Load crypto keys
       SecureDB.setup(ENV.delete('DB_KEY'))
+      AuthToken.setup(ENV.fetch('MSG_KEY')) # Load crypto key
     end
 
     configure :development, :test do
