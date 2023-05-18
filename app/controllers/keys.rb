@@ -24,12 +24,6 @@ module SecretSheath
           routing.halt 404, { message: e.message }.to_json
         end
 
-        # GET api/v1/keys/[folder_name]
-        routing.get do
-          response.status = 200
-          { keys: Key.where(folder_id:).all }.to_json
-        end
-
         # POST api/v1/keys/[folder_name]
         routing.post do
           new_req = JSON.parse(routing.body.read)

@@ -36,8 +36,8 @@ module SecretSheath
 
     def html_email
       <<~END_EMAIL
-        <H1>Credence App Registration Received</H1>
-        <p>Please <a href=\"#{@registration[:verification_url]}\">click here</a>
+        <H1>SecretSheath App Registration Received</H1>
+        <p>Please <a href="#{@registration[:verification_url]}">click here</a>
         to validate your email.
         You will be asked to set a password to activate your account.</p>
       END_EMAIL
@@ -49,7 +49,7 @@ module SecretSheath
           to: [{ 'email' => @registration[:email] }]
         }],
         from: { 'email' => from_email },
-        subject: 'Credent Registration Verification',
+        subject: 'SecretSheath Registration Verification',
         content: [
           { type: 'text/html',
             value: html_email }

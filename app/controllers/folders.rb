@@ -14,6 +14,11 @@ module SecretSheath
       routing.get String do |folder_name|
         folder = Folder.first(name: folder_name)
         folder ? folder.to_json : raise('Folder not found')
+
+        routing.on 'keys' do
+          keys = Folder.first(name: folder_name).keys
+          keys ? keys.to_json : raise('No Keys')
+        end
       rescue StandardError => e
         routing.halt 404, { message: e.message }.to_json
       end
@@ -21,10 +26,10 @@ module SecretSheath
       # GET api/v1/folders
       routing.get do
         account = Account.first(username: @auth_account['username'])
-        folders = account.projects
+        folders = account.owned_folders
         JSON.pretty_generate(data: folders)
       rescue StandardError
-        routing.halt 403, { message: 'Could not find any folders' }.to_json
+        routing.halt 404, { message: 'Could not find any folders' }.to_json
       end
 
       # POST api/v1/folders

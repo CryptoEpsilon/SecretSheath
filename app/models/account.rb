@@ -23,6 +23,11 @@ module SecretSheath
 
     plugin :timestamps, update_on_create: true
 
+    def before_save
+      self.masterkey_salt = Base64.strict_encode64(Password.new_salt)
+      super
+    end
+
     def keys
       owned_folders + sharers
     end
@@ -44,18 +49,15 @@ module SecretSheath
       digest.correct?(try_password)
     end
 
-    def before_save
-      self.masterkey_salt = Base64.strict_encode64(Password.new_salt)
-      super
-    end
-
     def to_json(options = {})
       JSON(
         {
           type: 'account',
-          id:,
-          username:,
-          email:
+          attributes: {
+            id:,
+            username:,
+            email:
+          }
         }, options
       )
     end
