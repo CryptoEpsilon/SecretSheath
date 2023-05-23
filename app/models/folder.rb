@@ -25,21 +25,31 @@ module SecretSheath
       self.description_encrypted = SecureDB.encrypt(plaintext)
     end
 
+    def to_h
+      {
+       type: 'folder',
+       attributes: {
+         id:,
+         name:,
+         description:
+       }
+      }
+    end
+
+    def full_details
+      to_h.merge(
+        relationships: {
+          owner:,
+          keys:
+        }
+      )
+    end
+
     # rubocop:disable Metrics/MethodLength
     def to_json(options = {})
-      JSON(
-        {
-          data: {
-            type: 'folder',
-            attributes: {
-              id:,
-              name:,
-              description:
-            }
-          }
-        }, options
-      )
+      JSON(to_h, options)
     end
     # rubocop:enable Metrics/MethodLength
   end
 end
+

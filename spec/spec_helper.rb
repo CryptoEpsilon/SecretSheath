@@ -15,6 +15,15 @@ def wipe_database
   SecretSheath::Account.map(&:destroy)
 end
 
+def auth_header(account_data)
+  auth = SecretSheath::AuthenticateAccount.call(
+    username: account_data['username'],
+    password: account_data['password']
+  )
+
+  "Bearer #{auth[:attributes][:auth_token]}"
+end
+
 DATA = {
   keys: YAML.safe_load(File.read('app/db/seeds/keys_seed.yml')),
   folders: YAML.safe_load(File.read('app/db/seeds/folders_seed.yml')),
