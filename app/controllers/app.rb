@@ -20,7 +20,7 @@ module SecretSheath
         routing.halt(403, { message: 'TLS/SSL Required' }.to_json)
 
       begin
-        @auth_account = authenticated_account(routing.headers)
+        @auth_account, @masterkey = authenticated_account(routing.headers)
       rescue AuthToken::InvalidTokenError
         routing.halt 403, { message: 'Invalid auth token' }.to_json
       rescue AuthToken::ExpiredTokenError

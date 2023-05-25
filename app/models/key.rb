@@ -33,7 +33,8 @@ module SecretSheath
     end
 
     def content
-      SecureDB.decrypt(content_encrypted)
+      protected_raw64 = SecureDB.decrypt(content_encrypted)
+      ProtectedKey.decrypt(protected_raw64)
     end
 
     def content=(plaintext)
@@ -41,7 +42,8 @@ module SecretSheath
     end
 
     def before_save
-      self.content = SecureDB.generate_key if content.nil?
+      raw_key = ProtectedKey.generate_key if content.nil?
+      self.content = ProtectedKey.encrypt(raw_key)
       self.short_alias = self.alias.to_s[0..7]
       super
     end
@@ -50,16 +52,17 @@ module SecretSheath
     def to_json(options = {})
       JSON(
         {
-          data: {
-            type: 'key',
-            attributes: {
-              id:,
-              name:,
-              description:,
-              alias:,
-              short_alias:,
-              created_at:
-            }
+          type: 'key',
+          attributes: {
+            id:,
+            name:,
+            description:,
+            alias:,
+            short_alias:,
+            created_at:
+          },
+          include: {
+            folder:
           }
         }, options
       )

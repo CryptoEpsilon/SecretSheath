@@ -17,6 +17,7 @@ module SecretSheath
       return nil unless scheme.match?(/^Bearer$/i)
 
       account_payload = AuthToken.new(auth_token).payload
+      ProtectedKey.setup(account_payload['masterkey'])
       Account.first(username: account_payload['attributes']['username'])
     end
   end

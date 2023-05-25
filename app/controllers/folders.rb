@@ -8,24 +8,36 @@ module SecretSheath
   class Api < Roda
     # rubocop:disable Metrics/BlockLength
     route('folders') do |routing|
+      unauthorized_message = { message: 'Unauthorized Request' }.to_json
+      routing.halt(403, unauthorized_message) unless @auth_account
+
       @folder_route = "#{@api_root}/folders"
 
-      # GET api/v1/folders/[name]
-      routing.get String do |folder_name|
-        folder = Folder.first(name: folder_name)
-        folder ? folder.to_json : raise('Folder not found')
+      routing.on String do |folder_name|
+        # GET api/v1/folders/[name]
+        routing.get do
+          @req_folder = @auth_account.owned_folders_dataset.first(name: folder_name)
+          folder = GetFolderQuery.call(account: @auth_account, folder: @req_folder)
+          { data: folder }.to_json
+        rescue GetFolderQuery::NotFoundError => e
+          routing.halt 404, { message: e.message }.to_json
+        rescue GetFolderQuery::ForbiddenError => e
+          routing.halt 403, { message: e.message }.to_json
+        end
 
-        routing.on 'keys' do
+        # GET api/v1/folders/[name]/keys
+        routing.get 'keys' do
           keys = Folder.first(name: folder_name).keys
           keys ? keys.to_json : raise('No Keys')
         end
       rescue StandardError => e
-        routing.halt 404, { message: e.message }.to_json
+        puts "ERROR: #{e.inspect}"
+        routing.halt 500, { message: e.message }.to_json
       end
 
       # GET api/v1/folders
       routing.get do
-        account = Account.first(username: @auth_account['username'])
+        account = Account.first(username: @auth_account[:username])
         folders = account.owned_folders
         JSON.pretty_generate(data: folders)
       rescue StandardError
@@ -35,7 +47,7 @@ module SecretSheath
       # POST api/v1/folders
       routing.post do
         new_req = JSON.parse(routing.body.read)
-        new_folder = Folder.new(new_req)
+        new_folder = @auth_account.add_owned_folder(new_req)
         raise 'Could create folder' unless new_folder.save
 
         response.status = 201

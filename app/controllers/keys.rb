@@ -26,8 +26,13 @@ module SecretSheath
 
         # POST api/v1/keys/[folder_name]
         routing.post do
-          new_req = JSON.parse(routing.body.read)
-          new_key = CreateKeyForFolder.call(folder_id:, key_data: new_req)
+          key_data = JSON.parse(routing.body.read)
+          folder = @auth_account.owned_folders_dataset.first(name: folder_name)
+          new_key = CreateKey.call(
+            account: @auth_account,
+            folder:,
+            key_data:
+          )
           raise 'Could not save key' unless new_key
 
           response.status = 201
@@ -39,14 +44,13 @@ module SecretSheath
             alias: new_key.alias,
             short_alias: new_key.short_alias,
             created_at: new_key.created_at }.to_json
-        rescue Sequel::MassAssignmentRestriction
-          Api.logger.warn "[MASS-ASSIGNMENT]: Attempt to set disallowed column: #{new_req}"
-          routing.halt 400, { message: 'Invalid key request' }.to_json
+        rescue CreateKey::ForbiddenError => e
+          routing.halt 403, { message: e.message }.to_json
+        rescue CreateKey::IllegalRequestError  => e
+          routing.halt 400, { message: e.message }.to_json
         rescue StandardError => e
-          routing.halt 500, { message: e.message }.to_json
+          routing.halt 404, { message: e.message }.to_json
         end
-      rescue StandardError => e
-        routing.halt 404, { message: e.message }.to_json
       end
     end
     # rubocop:enable Metrics/BlockLength

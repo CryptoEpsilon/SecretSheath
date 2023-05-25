@@ -19,26 +19,29 @@ module SecretSheath
       account = Account.first(username: credentials[:username])
       raise unless account.password?(credentials[:password])
 
+      masterkey = ConstructMasterkey.call(
+        encoded_salt: account.masterkey_salt,
+        password: credentials[:password]
+      )
+
       account_and_token({
                           type: 'authenticated_account',
                           attributes: {
                             id: account.id,
                             username: account.username,
-                            email: account.email,
-                            masterkey: ConstructKey.call(encoded_salt: account.masterkey_salt,
-                                                         password: credentials[:password])
+                            email: account.email
                           }
-                        })
+                        }, masterkey)
     rescue StandardError
       raise(UnauthorizedError, credentials)
     end
 
-    def self.account_and_token(account)
+    def self.account_and_token(account, masterkey)
       {
         type: 'authenticated_account',
         attributes: {
           account:,
-          auth_token: AuthToken.create(account)
+          auth_token: AuthToken.create(account.merge(masterkey:))
         }
       }
     end

@@ -1,7 +1,9 @@
+# frozen_string_literal: true
+
 module SecretSheath
-  
+  # Add Key to a Folder
   class CreateKey
-   
+    # Error for access denied
     class ForbiddenError < StandardError
       def message
         'You are not allowed to add more keys'

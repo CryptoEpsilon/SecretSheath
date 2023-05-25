@@ -45,11 +45,8 @@ module SecretSheath
       )
     end
 
-    # rubocop:disable Metrics/MethodLength
     def to_json(options = {})
       JSON(to_h, options)
     end
-    # rubocop:enable Metrics/MethodLength
   end
 end
-

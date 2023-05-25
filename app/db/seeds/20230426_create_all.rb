@@ -43,7 +43,7 @@ def create_keys
     k_info = key_info_each.next
     folder = folders_cycle.next
     SecretSheath::CreateKey.call(
-      account: folder.owner, folder: folder, key_data: k_info
+      account: folder.owner, masterkey: '', folder:, key_data: k_info
     )
   end
 end
@@ -55,7 +55,7 @@ def add_sharers
     shar['sharer_email'].each do |email|
       account = key.owner
       SecretSheath::AddSharer.call(
-        account: account, key: key, sharer_email: email
+        account:, key:, sharer_email: email
       )
     end
   end

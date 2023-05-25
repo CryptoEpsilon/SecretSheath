@@ -3,6 +3,7 @@
 module SecretSheath
   # Add a collaborator to another owner's existing project
   class GetFolderQuery
+    # Error for owner cannot be collaborator
     class ForbiddenError < StandardError
       def message
         'You are not allowed to access that Folder'

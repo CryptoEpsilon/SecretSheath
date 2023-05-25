@@ -26,7 +26,7 @@ module SecretSheath
     end
 
     def can_remove_keys?
-      account_is_owner? 
+      account_is_owner?
     end
 
     def summary
