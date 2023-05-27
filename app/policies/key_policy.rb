@@ -3,37 +3,38 @@
 module SecretSheath
   # Policy to determine if account can view a project
   class KeyPolicy
-    def initialize(account, key)
+    def initialize(account, key, auth_scope = nil)
       @account = account
       @key = key
+      @auth_scope = auth_scope
     end
 
     def can_view?
-      account_owns_key? || account_shares_on_key?
+       can_read? && (account_owns_key? || account_shares_on_key?)
     end
 
     def can_encrypt?
-      account_owns_key? || account_shares_on_key?
+      can_write? && (account_owns_key? || account_shares_on_key?)
     end
 
     def can_decrypt?
-      account_owns_key? || account_shares_on_key?
+      can_write? && (account_owns_key? || account_shares_on_key?)
     end
 
     def can_edit?
-      account_owns_key?
+      can_write? && account_owns_key?
     end
 
     def can_delete?
-      account_owns_key?
+      can_write? && account_owns_key?
     end
 
     def can_add_sharers?
-      account_owns_key?
+      can_write? && account_owns_key?
     end
 
     def can_remove_sharers?
-      account_owns_key?
+      can_write? &&account_owns_key?
     end
 
     def can_share?
@@ -54,6 +55,14 @@ module SecretSheath
     end
 
     private
+
+    def can_read?
+      @auth_scope ? @auth_scope.can_read?('keys') : false
+    end
+
+    def can_write?
+      @auth_scope ? @auth_scope.can_write?('keys') : false
+    end
 
     def account_owns_key?
       @key.folder.owner == @account

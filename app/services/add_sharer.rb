@@ -10,9 +10,11 @@ module SecretSheath
       end
     end
 
-    def self.call(account:, key:, sharer_email:)
+    def self.call(auth:, key:, sharer_email:)
       invitee = Account.first(email: sharer_email)
-      policy = SharingRequestPolicy.new(key, account, invitee)
+      policy = SharingRequestPolicy.new(
+        key, auth[:account], invitee, auth[:scope]
+      )
       raise ForbiddenError unless policy.can_invite?
 
       key.add_shared_key(invitee)

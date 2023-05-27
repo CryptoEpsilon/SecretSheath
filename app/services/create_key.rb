@@ -17,14 +17,10 @@ module SecretSheath
       end
     end
 
-    def self.call(account:, folder:, key_data:)
-      policy = FolderPolicy.new(account, folder)
+    def self.call(auth:, folder:, key_data:)
+      policy = FolderPolicy.new(auth[:account], folder, auth[:scope])
       raise ForbiddenError unless policy.can_add_keys?
 
-      add_key(folder, key_data)
-    end
-
-    def self.add_key(folder, key_data)
       folder.add_key(key_data)
     rescue Sequel::MassAssignmentRestriction
       raise IllegalRequestError

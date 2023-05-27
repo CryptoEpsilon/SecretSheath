@@ -17,10 +17,10 @@ module SecretSheath
       end
     end
 
-    def self.call(account:, folder:)
+    def self.call(auth:, folder:)
       raise NotFoundError unless folder
 
-      policy = FolderPolicy.new(account, folder)
+      policy = FolderPolicy.new(auth[:account], folder, auth[:scope])
       raise ForbiddenError unless policy.can_view?
 
       folder.full_details.merge(policies: policy.summary)

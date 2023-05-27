@@ -18,10 +18,10 @@ module SecretSheath
     end
 
     # Key for given requestor account
-    def self.call(requestor:, key:)
+    def self.call(auth:, key:)
       raise NotFoundError unless key
 
-      policy = keyPolicy.new(requestor, Key)
+      policy = keyPolicy.new(auth[:account], key, auth[:scope])
       raise ForbiddenError unless policy.can_view?
 
       key
