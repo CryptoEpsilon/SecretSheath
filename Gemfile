@@ -44,6 +44,7 @@ group :test do
   gem 'minitest'
   gem 'minitest-rg'
   gem 'rack-test'
+  gem 'webmock'
 end
 
 # Debugging
