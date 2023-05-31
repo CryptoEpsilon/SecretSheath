@@ -11,20 +11,20 @@ module SecretSheath
     end
 
     def self.call(auth:, username:, auth_scope:)
-      account = Account.first(username: username)
+      account = Account.first(username:)
       policy = AccountPolicy.new(auth[:account], account)
       policy.can_view? ? account : raise(ForbiddenError)
 
       raise ForbiddenError unless policy.can_view?
 
-      account_and_token(account, auth_scope)
+      account_and_token(account.to_h.merge(masterkey: auth[:masterkey]), auth_scope)
     end
 
     def self.account_and_token(account, auth_scope)
       {
         type: 'authorized_account',
         attributes: {
-          account: account,
+          account:,
           auth_token: AuthToken.create(account, auth_scope)
         }
       }

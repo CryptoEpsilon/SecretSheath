@@ -19,9 +19,9 @@ module SecretSheath
                      .owned_folders_dataset.first(name: folder_name)
                      .keys_dataset.first(alias: key_alias)
         decrypted_data = DecryptData.call(
-          account: @auth_account,
+          auth: @auth,
           key:,
-          ciphertext_data: @dec_req['ciphertext']
+          secret_data: @dec_req['ciphertext']
         )
         { data: decrypted_data }.to_json
       rescue RbNaCl::CryptoError => e

@@ -17,13 +17,24 @@ module SecretSheath
         # GET api/v1/folders/[name]
         routing.get do
           @req_folder = @auth_account.owned_folders_dataset.first(name: folder_name)
-          folder = GetFolderQuery.call(account: @auth_account, folder: @req_folder)
+          folder = GetFolderQuery.call(auth: @auth, folder: @req_folder)
           { data: folder }.to_json
         rescue GetFolderQuery::NotFoundError => e
           routing.halt 404, { message: e.message }.to_json
         rescue GetFolderQuery::ForbiddenError => e
           routing.halt 403, { message: e.message }.to_json
         end
+
+        # DELETE api/v1/folders/[name]
+        # routing.delete do
+        #   @req_folder = @auth_account.owned_folders_dataset.first(name: folder_name)
+        #   DeleteFolder.call(auth: @auth, folder: @req_folder)
+        #   response.status = 204
+        # rescue DeleteFolder::NotFoundError => e
+        #   routing.halt 404, { message: e.message }.to_json
+        # rescue DeleteFolder::ForbiddenError => e
+        #   routing.halt 403, { message: e.message }.to_json
+        # end
 
         # GET api/v1/folders/[name]/keys
         routing.get 'keys' do

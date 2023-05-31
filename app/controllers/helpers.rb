@@ -13,7 +13,7 @@ module SecretSheath
     def authorization(headers)
       return nil unless headers['AUTHORIZATION']
 
-      scheme, auth_token = headers['AUTHORIZATION'].split(' ')
+      scheme, auth_token = headers['AUTHORIZATION'].split
       return nil unless scheme.match?(/^Bearer$/i)
 
       scoped_auth(auth_token)
@@ -24,9 +24,8 @@ module SecretSheath
       account_data = token.payload['attributes']
 
       { account: Account.first(username: account_data['username']),
-        protectedkey : ProtectedKey.setup(token.payload['masterkey'])
+        masterkey: ProtectedKey.setup(token.payload['masterkey']),
         scope: AuthScope.new(token.scope) }
     end
-
   end
 end

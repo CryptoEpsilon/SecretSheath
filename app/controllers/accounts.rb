@@ -9,12 +9,12 @@ module SecretSheath
     route('accounts') do |routing|
       @account_route = "#{@api_root}/accounts"
       routing.on String do |username|
-      	routing.halt(403, UNAUTH_MSG) unless @auth_account
+        routing.halt(403, UNAUTH_MSG) unless @auth_account
 
         # GET api/v1/accounts/[username]
         routing.get do
           auth = AuthorizeAccount.call(
-            auth: @auth, username: username,
+            auth: @auth, username:,
             auth_scope: AuthScope.new(AuthScope::READ_ONLY)
           )
           { data: auth }.to_json

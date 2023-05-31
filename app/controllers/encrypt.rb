@@ -19,7 +19,7 @@ module SecretSheath
                      .owned_folders_dataset.first(name: folder_name)
                      .keys_dataset.first(alias: key_alias)
         encrypted_data = EncryptData.call(
-          account: @auth_account,
+          auth: @auth,
           key:,
           plaintext_data: @enc_req['plaintext']
         )

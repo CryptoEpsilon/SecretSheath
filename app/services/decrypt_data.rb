@@ -21,17 +21,14 @@ module SecretSheath
     end
 
     # Key for given requestor account
-    def self.call(account:, key:, ciphertext_data:)
+    def self.call(auth:, key:, secret_data:)
       raise NotFoundError unless key
 
-      policy = KeyPolicy.new(account, key)
+      policy = KeyPolicy.new(auth[:account], key, auth[:scope])
       raise ForbiddenError unless policy.can_decrypt?
 
-      setup(key.content)
-      plaintext64 = Base64.strict_decode64(ciphertext_data)
-      plaintext = base_decrypt(plaintext64)
-
-      { type: 'decrypted_data', attributes: { plaintext: } }
+      encrypted_data = SecretData.new(secret_data)
+      encrypted_data.decrypt(key)
     end
 
     def self.key

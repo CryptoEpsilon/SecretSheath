@@ -61,5 +61,16 @@ module SecretSheath
         }, options
       )
     end
+
+    def to_h
+      {
+        type: 'account',
+        attributes: {
+          id:,
+          username:,
+          email:
+        }
+      }
+    end
   end
 end

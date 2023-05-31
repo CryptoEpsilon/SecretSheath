@@ -10,7 +10,7 @@ module SecretSheath
     end
 
     def can_view?
-       can_read? && (account_owns_key? || account_shares_on_key?)
+      can_read? && (account_owns_key? || account_shares_on_key?)
     end
 
     def can_encrypt?
