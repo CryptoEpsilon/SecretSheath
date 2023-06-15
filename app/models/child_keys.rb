@@ -6,37 +6,37 @@ require 'rbnacl'
 require 'sequel'
 
 module SecretSheath
-  # Holds a full secret keys
-  class Key < Sequel::Model
-    many_to_one :folder
+  # Holds a full secret document
+  class ChildKey < Sequel::Model
+    many_to_one :parent, class: :'SecretSheath::Key'
 
-    one_to_many :children, class: :'SecretSheath::ChildKey', key: :parent_id
+    many_to_many :accessor,
+                 class: :'SecretSheath::Account',
+                 join_table: :accounts_child_keys,
+                 left_key: :key_id, right_key: :accessor_id
 
     plugin :association_dependencies,
-           children: :destroy
+           accessor: :nullify
 
     plugin :timestamps
     plugin :uuid, field: :alias
     plugin :whitelist_security
     set_allowed_columns :name, :description, :content
 
-    def before_save
-      raw_key = ProtectedKey.generate_key if content.nil?
-      self.content = ProtectedKey.encrypt(raw_key)
-      self.short_alias = self.alias.to_s[0..7]
-      super
-    end
-    
     def type
-      'key'
-    end
-
-    def accessors(account = nil)
-      account ? children.map(&:accessor).flatten.find { |a| a == account } : children.map(&:accessor).flatten
+      'childkey'
     end
 
     def owner
-      folder.owner
+      parent.owner
+    end
+
+    def accessors
+      accessor
+    end
+
+    def folder
+      SharedFolder.new
     end
 
     # Secure getters and setters
@@ -49,22 +49,23 @@ module SecretSheath
     end
 
     def content
-      protected_raw64 = SecureDB.decrypt(content_encrypted)
-      ProtectedKey.decrypt(protected_raw64)
+      SecureDB.decrypt(content_encrypted)
     end
 
     def content=(plaintext)
       self.content_encrypted = SecureDB.encrypt(plaintext)
     end
 
-    def delete_all_children
-      children.map(&:destroy)
+    def before_save
+      self.short_alias = self.alias.to_s[0..7]
+      self.name = "#{name}-#{short_alias}"
+      super
     end
 
     # rubocop:disable Metrics/MethodLength
     def to_h
       {
-        type: 'key',
+        type: 'childkey',
         attributes: {
           id:,
           name:,
@@ -82,7 +83,8 @@ module SecretSheath
     def full_details
       to_h.merge(
         relationships: {
-          children: children.map(&:full_details)
+          owner:,
+          accessor:
         }
       )
     end

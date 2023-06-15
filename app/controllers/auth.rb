@@ -6,12 +6,12 @@ require_relative './app'
 module SecretSheath
   # Web controller for Credence API
   class Api < Roda
-    route('auth') do |routing| # rubocop:disable Metrics/BlockLength
+    route('auth') do |routing|
       # All requests in this route require signed requests
       begin
         @request_data = SignedRequest.new(Api.config).parse(request.body.read)
       rescue SignedRequest::VerificationError
-        routing.halt '403', { message: 'Must sign request' }.to_json
+        routing.halt 403, { message: 'Must sign request' }.to_json
       end
 
       routing.on 'register' do
@@ -38,7 +38,7 @@ module SecretSheath
           auth_account = AuthenticateAccount.call(@request_data)
           { data: auth_account }.to_json
         rescue AuthenticateAccount::UnauthorizedError
-          routing.halt '401', { message: 'Invalid credentials' }.to_json
+          routing.halt 401, { message: 'Invalid credentials' }.to_json
         end
       end
 

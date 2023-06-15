@@ -19,10 +19,7 @@ module SecretSheath
       account = Account.first(username: credentials[:username])
       raise unless account.password?(credentials[:password])
 
-      masterkey = ConstructMasterkey.call(
-        encoded_salt: account.masterkey_salt,
-        password: credentials[:password]
-      )
+      masterkey = account.assemble_masterkey(credentials[:password])
 
       account_and_token({
                           type: 'authenticated_account',

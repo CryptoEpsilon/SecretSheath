@@ -46,6 +46,7 @@ module SecretSheath
       # Load crypto keys
       SecureDB.setup(ENV.delete('DB_KEY'))
       AuthToken.setup(ENV.fetch('MSG_KEY')) # Load crypto key
+      SecureMessage.setup(ENV.delete('WEBAPP_MSG_KEY'))
     end
 
     configure :development, :test do

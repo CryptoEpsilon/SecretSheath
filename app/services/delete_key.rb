@@ -2,29 +2,28 @@
 
 module SecretSheath
   # Add a collaborator to another owner's existing project
-  class GetKeyQuery
+  class DeleteKey
     # Error for owner cannot be collaborator
     class ForbiddenError < StandardError
       def message
-        'You are not allowed to access that Key'
+        'You are not allowed to access that key'
       end
     end
 
-    # Error for cannot find a project
+    # Error for cannot find a key
     class NotFoundError < StandardError
       def message
-        'We could not find that Key'
+        'We could not find that key'
       end
     end
 
-    # Key for given requestor account
     def self.call(auth:, key:)
       raise NotFoundError unless key
 
       policy = KeyPolicy.new(auth[:account], key, auth[:scope])
-      raise ForbiddenError unless policy.can_view?
+      raise ForbiddenError unless policy.can_delete?
 
-      key.full_details.merge(policies: policy.summary)
+      key.destroy
     end
   end
 end

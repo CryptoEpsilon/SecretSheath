@@ -27,12 +27,12 @@ module SecretSheath
 
     def to_h
       {
-       type: 'folder',
-       attributes: {
-         id:,
-         name:,
-         description:
-       }
+        type: 'folder',
+        attributes: {
+          id:,
+          name:,
+          description:
+        }
       }
     end
 

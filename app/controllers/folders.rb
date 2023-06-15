@@ -13,6 +13,18 @@ module SecretSheath
 
       @folder_route = "#{@api_root}/folders"
 
+      # GET api/v1/folders/Shared
+      routing.is 'Shared' do
+        routing.get do
+          shared_folders = GetFolderQuery.call(auth: @auth, folder: SharedFolder.new(@auth_account))
+          { data: shared_folders }.to_json
+        rescue GetFolderQuery::NotFoundError => e
+          routing.halt 404, { message: e.message }.to_json
+        rescue GetFolderQuery::ForbiddenError => e
+          routing.halt 403, { message: e.message }.to_json
+        end
+      end
+
       routing.on String do |folder_name|
         # GET api/v1/folders/[name]
         routing.get do
@@ -26,15 +38,15 @@ module SecretSheath
         end
 
         # DELETE api/v1/folders/[name]
-        # routing.delete do
-        #   @req_folder = @auth_account.owned_folders_dataset.first(name: folder_name)
-        #   DeleteFolder.call(auth: @auth, folder: @req_folder)
-        #   response.status = 204
-        # rescue DeleteFolder::NotFoundError => e
-        #   routing.halt 404, { message: e.message }.to_json
-        # rescue DeleteFolder::ForbiddenError => e
-        #   routing.halt 403, { message: e.message }.to_json
-        # end
+        routing.delete do
+          @req_folder = @auth_account.owned_folders_dataset.first(name: folder_name)
+          DeleteFolder.call(auth: @auth, folder: @req_folder)
+          { message: "Folder '#{@req_folder.name}' deleted successfully" }.to_json
+        rescue DeleteFolder::NotFoundError => e
+          routing.halt 404, { message: e.message }.to_json
+        rescue DeleteFolder::ForbiddenError => e
+          routing.halt 403, { message: e.message }.to_json
+        end
 
         # GET api/v1/folders/[name]/keys
         routing.get 'keys' do
@@ -48,9 +60,9 @@ module SecretSheath
 
       # GET api/v1/folders
       routing.get do
-        account = Account.first(username: @auth_account[:username])
-        folders = account.owned_folders
-        JSON.pretty_generate(data: folders)
+        folders = FolderPolicy::AccountScope.new(@auth_account, @auth[:scope]).viewable
+
+        { data: folders.append(SharedFolder.new(@auth_account).to_h) }.to_json
       rescue StandardError
         routing.halt 404, { message: 'Could not find any folders' }.to_json
       end
@@ -58,8 +70,8 @@ module SecretSheath
       # POST api/v1/folders
       routing.post do
         new_req = JSON.parse(routing.body.read)
-        new_folder = @auth_account.add_owned_folder(new_req)
-        raise 'Could create folder' unless new_folder.save
+
+        new_folder = CreateFolderForOwner.call(auth: @auth, folder_data: new_req)
 
         response.status = 201
         response['Location'] = "#{@folder_route}/#{new_folder.id}"
@@ -70,6 +82,8 @@ module SecretSheath
       rescue Sequel::MassAssignmentRestriction
         Api.logger.warn "[MASS-ASSIGNMENT]: Attempt to set disallowed column: #{new_req}"
         routing.halt 400, { message: 'Invalid folder request' }.to_json
+      rescue CreateFolderForOwner::ForbiddenError => e
+        routing.halt 403, { message: e.message }.to_json
       rescue StandardError => e
         routing.halt 500, { message: e.message }.to_json
       end

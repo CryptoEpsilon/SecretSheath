@@ -8,7 +8,13 @@ class ProtectedKey
 
   # Encrypt or else return nil if data is nil
 
+  def initialize(key)
+    @base_key = key
+  end
+
   def self.key
+    raise unless @base_key
+
     @key = Base64.strict_decode64(@base_key)
   end
 
@@ -25,5 +31,9 @@ class ProtectedKey
 
     ciphertext = Base64.strict_decode64(ciphertext64)
     base_decrypt(ciphertext)
+  end
+
+  def self.forget
+    @base_key = nil
   end
 end

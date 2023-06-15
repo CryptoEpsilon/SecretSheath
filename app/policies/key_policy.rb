@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+require_relative '../lib/auth_scope'
 
 module SecretSheath
   # Policy to determine if account can view a project
@@ -7,34 +8,35 @@ module SecretSheath
       @account = account
       @key = key
       @auth_scope = auth_scope
+      @resource_name = key.name
     end
 
     def can_view?
-      can_read? && (account_owns_key? || account_shares_on_key?)
-    end
-
-    def can_encrypt?
-      can_write? && (account_owns_key? || account_shares_on_key?)
+      can_read?(@resource_name) && (account_owns_key? || account_shares_on_key?)
     end
 
     def can_decrypt?
-      can_write? && (account_owns_key? || account_shares_on_key?)
+      can_decrypt_with?(@resource_name) && (account_owns_key? || account_shares_on_key?)
     end
 
-    def can_edit?
-      can_write? && account_owns_key?
+    def can_encrypt?
+      can_encrypt_with?(@resource_name) && account_owns_key?
     end
 
     def can_delete?
-      can_write? && account_owns_key?
+      can_write?(@resource_name) && account_owns_key?
     end
 
-    def can_add_sharers?
-      can_write? && account_owns_key?
+    def can_add_accessors?
+      can_write?(@resource_name) && account_owns_key?
     end
 
-    def can_remove_sharers?
-      can_write? &&account_owns_key?
+    def can_manage?
+      can_write?(@resource_name) && account_owns_key?
+    end
+
+    def can_remove_accessors?
+      can_write?(@resource_name) && account_owns_key?
     end
 
     def can_share?
@@ -46,22 +48,30 @@ module SecretSheath
         can_view: can_view?,
         can_encrypt: can_encrypt?,
         can_decrypt: can_decrypt?,
-        can_edit: can_edit?,
         can_delete: can_delete?,
-        can_add_sharers: can_add_sharers?,
-        can_remove_sharers: can_remove_sharers?,
+        can_add_accessors: can_add_accessors?,
+        can_manage: can_manage?,
+        can_remove_accessors: can_remove_accessors?,
         can_share: can_share?
       }
     end
 
     private
 
-    def can_read?
-      @auth_scope ? @auth_scope.can_read?('keys') : false
+    def can_read?(resource_name)
+      @auth_scope ? @auth_scope.can_read?('keys', resource_name) : false
     end
 
-    def can_write?
-      @auth_scope ? @auth_scope.can_write?('keys') : false
+    def can_write?(resource_name)
+      @auth_scope ? @auth_scope.can_write?('keys', resource_name) : false
+    end
+
+    def can_encrypt_with?(resource_name)
+      @auth_scope ? @auth_scope.can_write?('keys', resource_name) : false
+    end
+
+    def can_decrypt_with?(resource_name)
+      @auth_scope ? @auth_scope.can_write?('keys', resource_name) : false
     end
 
     def account_owns_key?
@@ -69,7 +79,7 @@ module SecretSheath
     end
 
     def account_shares_on_key?
-      @key.shared_keys.include?(@account)
+      @key.accessors.include?(@account)
     end
   end
 end

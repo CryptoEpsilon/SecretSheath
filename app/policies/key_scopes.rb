@@ -17,7 +17,7 @@ module SecretSheath
           @full_scope
         else
           @full_scope.select do |key|
-            includes_sharer?(key, @current_account)
+            includes_accessor?(key, @current_account)
           end
         end
       end
@@ -25,11 +25,11 @@ module SecretSheath
       private
 
       def all_keys(account)
-        account.owned_folders.keys + account.sharers
+        account.owned_folders.keys + account.acess
       end
 
-      def includes_sharer?(key, account)
-        key.shared_keys.include? account
+      def includes_accessor?(key, account)
+        key.acessors.include? account
       end
     end
   end

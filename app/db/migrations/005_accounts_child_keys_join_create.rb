@@ -4,6 +4,6 @@ require 'sequel'
 
 Sequel.migration do
   change do
-    create_join_table(sharer_id: :accounts, key_id: :keys)
+    create_join_table(accessor_id: :accounts, key_id: :child_keys)
   end
 end

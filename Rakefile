@@ -48,7 +48,7 @@ namespace :db do
   app = SecretSheath::Api
 
   task :load_models do
-    require_app(%w[lib models services])
+    require_app(%w[lib models services policies])
   end
 
   task reset_seeds: :load_models do
@@ -94,6 +94,8 @@ namespace :db do
 end
 
 namespace :newkey do
+  task(:load_libs) { require_app 'lib' }
+
   desc 'Create sample cryptographic key for database'
   task :db do
     require_app('lib')
@@ -104,6 +106,14 @@ namespace :newkey do
   task :msg do
     require_app('lib')
     puts "MSG_KEY: #{AuthToken.generate_key}"
+  end
+
+  desc 'Create sample sign/verify keypair for signed communication'
+  task :signing => :load_libs do
+    keypair = SignedRequest.generate_keypair
+
+    puts "SIGNING_KEY: #{keypair[:signing_key]}"
+    puts " VERIFY_KEY: #{keypair[:verify_key]}"
   end
 end
 

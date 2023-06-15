@@ -11,7 +11,7 @@ module SecretSheath
     end
 
     def self.call(requestor:, username:)
-      account = Account.first(username: username)
+      account = Account.first(username:)
 
       policy = AccountPolicy.new(requestor, account)
       policy.can_view? ? account : raise(ForbiddenError)

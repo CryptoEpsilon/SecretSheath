@@ -5,7 +5,7 @@ require_relative '../lib/securable'
 module SecretSheath
   # Add a collaborator to another owner's existing project
   class EncryptData
-
+    ONE_MINUTE = 60
     ONE_HOUR = 60 * 60
     ONE_DAY = ONE_HOUR * 24
     ONE_WEEK = ONE_DAY * 7
@@ -28,13 +28,14 @@ module SecretSheath
     end
 
     # Key for given requestor account
-    def self.call(auth:, key:, plaintext_data:, valid_to: ONE_WEEK)
+    def self.call(auth:, key:, plaintext_data:, expire_in: ONE_MINUTE)
       raise NotFoundError unless key
 
       policy = KeyPolicy.new(auth[:account], key, auth[:scope])
+
       raise ForbiddenError unless policy.can_encrypt?
 
-      SecretData.encrypt(plaintext_data, key, valid_to)
+      SecretData.encrypt(plaintext_data, key, expire_in)
     end
 
     def self.key

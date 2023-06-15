@@ -9,14 +9,14 @@ module SecretSheath
   class Account < Sequel::Model
     one_to_many :owned_folders, class: :'SecretSheath::Folder', key: :owner_id
 
-    many_to_many :sharers,
-                 class: :'SecretSheath::Key',
-                 join_table: :accounts_keys,
-                 left_key: :sharer_id, right_key: :key_id
+    many_to_many :access,
+                 class: :'SecretSheath::ChildKey',
+                 join_table: :accounts_child_keys,
+                 left_key: :accessor_id, right_key: :key_id
 
     plugin :association_dependencies,
            owned_folders: :destroy,
-           sharers: :nullify
+           access: :nullify
 
     plugin :whitelist_security
     set_allowed_columns :username, :email, :password
@@ -29,12 +29,40 @@ module SecretSheath
     end
 
     def before_save
-      self.masterkey_salt = Base64.strict_encode64(Password.new_salt)
+      asym_key = AsymetricCrypto.generate_keypair
+      self.public_key = asym_key[:public_key]
+      self.private_key = ProtectedKey.encrypt(asym_key[:private_key])
+      ProtectedKey.forget
       super
     end
 
-    def keys
-      owned_folders + sharers
+    def parent_keys
+      owned_folders.map(&:keys).flatten
+    end
+
+    def children_keys
+      owned_folders.keys.map(&:children).flatten
+    end
+
+    def shared_keys
+      access
+    end
+
+    def public_key
+      SecureDB.decrypt(public_key_encrypted)
+    end
+
+    def public_key=(plaintext)
+      self.public_key_encrypted = SecureDB.encrypt(plaintext)
+    end
+
+    def private_key
+      protected_priv64 = SecureDB.decrypt(private_key_encrypted)
+      ProtectedKey.decrypt(protected_priv64)
+    end
+
+    def private_key=(plaintext)
+      self.private_key_encrypted = SecureDB.encrypt(plaintext)
     end
 
     def masterkey_salt
@@ -47,11 +75,22 @@ module SecretSheath
 
     def password=(new_password)
       self.password_digest = Password.digest(new_password)
+      self.masterkey_salt = Base64.strict_encode64(Password.new_salt)
+      ProtectedKey.setup(assemble_masterkey(new_password))
     end
 
     def password?(try_password)
       digest = SecretSheath::Password.from_digest(password_digest)
       digest.correct?(try_password)
+    end
+
+    def assemble_masterkey(password)
+      raise 'Password mismatch' unless password?(password)
+
+      ConstructMasterkey.construct(
+        encoded_salt: masterkey_salt,
+        password:
+      )
     end
 
     def to_json(options = {})
@@ -67,15 +106,6 @@ module SecretSheath
       )
     end
 
-    def to_h
-      {
-        type: 'account',
-        attributes: {
-          id:,
-          username:,
-          email:
-        }
-      }
-    end
+    def to_h = JSON.parse(to_json)
   end
 end

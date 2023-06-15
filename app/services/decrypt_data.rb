@@ -28,7 +28,13 @@ module SecretSheath
       raise ForbiddenError unless policy.can_decrypt?
 
       encrypted_data = SecretData.new(secret_data)
-      encrypted_data.decrypt(key)
+
+      key_content = key.type == 'childkey' ? extract_childkey(auth[:account], key) : key.content
+      encrypted_data.decrypt(key_content)
+    end
+
+    def self.extract_childkey(account, key)
+      AsymetricCrypto.new(key.owner.public_key, account.private_key).decrypt(key.content)
     end
 
     def self.key

@@ -37,11 +37,13 @@ class SecretData
   def decrypt(key)
     raise InvalidSecretError if expired?
 
-    SecretData.setup(key.content)
+    SecretData.setup(key)
     plaintext64 = Base64.strict_decode64(@ciphertext)
     plaintext = SecretData.base_decrypt(plaintext64)
 
     { type: 'decrypted_data', attributes: { plaintext: } }
+  rescue ArgumentError => e
+    raise InvalidSecretError, e.message
   end
 
   def self.key
@@ -62,14 +64,16 @@ class SecretData
     ciphertext = Base64.urlsafe_decode64(ciphertext64)
     message_json = base_decrypt(ciphertext)
     JSON.parse(message_json)
+  rescue ArgumentError => e
+    raise InvalidSecretError, e.message
   end
 
   def self.expires(expiration)
-    (Time.now + expiration).to_i
+    expiration.positive? ? (Time.now + expiration).to_i : 0
   end
 
   def expired?
-    Time.now > Time.at(@expiration)
+    @expiration.zero? ? false : Time.now > Time.at(@expiration)
   end
 
   def valid? = !expired?

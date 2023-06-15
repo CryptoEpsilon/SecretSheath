@@ -14,14 +14,15 @@ module SecretSheath
 
       # POST api/v1/encrypt/[folder_name]/[key_alias]
       routing.post String, String do |folder_name, key_alias|
-        @enc_req = JSON.parse(routing.body.read)
+        enc_req = JSON.parse(routing.body.read)
         key = Account.first(username: @auth_account[:username])
                      .owned_folders_dataset.first(name: folder_name)
                      .keys_dataset.first(alias: key_alias)
         encrypted_data = EncryptData.call(
           auth: @auth,
           key:,
-          plaintext_data: @enc_req['plaintext']
+          plaintext_data: enc_req['plaintext'],
+          expire_in: enc_req['expire_in'].to_i
         )
         { data: encrypted_data }.to_json
       end

@@ -8,6 +8,7 @@ module SecretSheath
   # Web controller for SecretSheath API
   class Api < Roda
     plugin :halt
+    plugin :all_verbs
     plugin :multi_route
     plugin :request_headers
 

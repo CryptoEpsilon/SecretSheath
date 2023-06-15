@@ -15,7 +15,7 @@ module SecretSheath
         routing.get do
           auth = AuthorizeAccount.call(
             auth: @auth, username:,
-            auth_scope: AuthScope.new(AuthScope::READ_ONLY)
+            auth_scope: AuthScope.new(AuthScope::EVERYTHING)
           )
           { data: auth }.to_json
         rescue AuthorizeAccount::ForbiddenError => e
@@ -39,7 +39,7 @@ module SecretSheath
         routing.halt 400, { message: 'Illegal Request' }.to_json
       rescue SignedRequest::VerificationError
         routing.halt 403, { message: 'Must sign request' }.to_json
-      rescue StandardError => e
+      rescue StandardError
         Api.logger.error 'Unknown error saving account'
         routing.halt 500, { message: 'Error creating account' }.to_json
       end
