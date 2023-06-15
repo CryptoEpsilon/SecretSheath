@@ -26,7 +26,7 @@ module SecretSheath
       self.short_alias = self.alias.to_s[0..7]
       super
     end
-    
+
     def type
       'key'
     end

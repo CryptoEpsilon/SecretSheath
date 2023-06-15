@@ -21,7 +21,7 @@ class SecretData
     @expiration = contents['exp']
   end
 
-  def self.encrypt(secret, key, expiration)
+  def self.encrypt(secret, key, expiration = 0)
     raise InvalidSecretError unless secret
 
     setup(key.content)

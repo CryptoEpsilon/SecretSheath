@@ -41,7 +41,7 @@ module SecretSheath
     end
 
     def children_keys
-      owned_folders.keys.map(&:children).flatten
+      owned_folders.map(&:keys).flatten.map(&:children).flatten
     end
 
     def shared_keys
