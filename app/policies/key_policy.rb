@@ -67,11 +67,11 @@ module SecretSheath
     end
 
     def can_encrypt_with?(resource_name)
-      @auth_scope ? @auth_scope.can_write?('keys', resource_name) : false
+      @auth_scope ? @auth_scope.can_encrypt?('keys', resource_name) : false
     end
 
     def can_decrypt_with?(resource_name)
-      @auth_scope ? @auth_scope.can_write?('keys', resource_name) : false
+      @auth_scope ? @auth_scope.can_decrypt?('keys', resource_name) : false
     end
 
     def account_owns_key?

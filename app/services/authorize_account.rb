@@ -21,13 +21,22 @@ module SecretSheath
     end
 
     def self.account_and_token(account, auth_scope)
+      auth_token = auth_scope.is_a?(Hash) ? extract_scopes(account, auth_scope) : AuthToken.create(account, auth_scope)
       {
         type: 'authorized_account',
         attributes: {
           account:,
-          auth_token: AuthToken.create(account, auth_scope)
+          auth_token:
         }
       }
+    end
+
+    def self.extract_scopes(account, auth_scope)
+      scopes = {}
+      auth_scope.each do |k, v|
+        scopes[k] = AuthToken.create(account, v)
+      end
+      scopes
     end
   end
 end

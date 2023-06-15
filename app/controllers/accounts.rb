@@ -15,7 +15,12 @@ module SecretSheath
         routing.get do
           auth = AuthorizeAccount.call(
             auth: @auth, username:,
-            auth_scope: AuthScope.new(AuthScope::EVERYTHING)
+            auth_scope: {
+              readonly: AuthScope.new(AuthScope::READ_ONLY),
+              encryptonly: AuthScope.new(AuthScope::ENCRYPT_ONLY),
+              decryptonly: AuthScope.new(AuthScope::DECRYPT_ONLY),
+              onkeytest: AuthScope.new('keys:test:encrypt keys:test:decrypt')
+            }
           )
           { data: auth }.to_json
         rescue AuthorizeAccount::ForbiddenError => e

@@ -25,6 +25,8 @@ module SecretSheath
           expire_in: enc_req['expire_in'].to_i
         )
         { data: encrypted_data }.to_json
+      rescue EncryptData::ForbiddenError => e
+        routing.halt(403, { message: e.message }.to_json)
       end
     end
   end

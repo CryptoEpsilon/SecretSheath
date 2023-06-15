@@ -36,6 +36,8 @@ module SecretSheath
           secret_data: dec_req['ciphertext']
         )
         { data: decrypted_data }.to_json
+      rescue DecryptData::ForbiddenError => e
+        routing.halt(403, { message: e.message }.to_json)
       rescue SecretData::InvalidSecretError => e
         routing.halt 400, { message: e.message }.to_json
       rescue RbNaCl::CryptoError => e
