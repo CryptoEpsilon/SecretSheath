@@ -27,12 +27,16 @@ module SecretSheath
       can_write?(@resource_name) && account_owns_key?
     end
 
+    def can_manage?
+      can_write?(@resource_name) && account_owns_key?
+    end
+
     def can_add_accessors?
       can_write?(@resource_name) && account_owns_key?
     end
 
-    def can_manage?
-      can_write?(@resource_name) && account_owns_key?
+    def can_get_accessors?
+      can_read?(@resource_name) && (account_owns_key? || account_shares_on_key?)
     end
 
     def can_remove_accessors?

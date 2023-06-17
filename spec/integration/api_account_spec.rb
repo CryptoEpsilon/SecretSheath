@@ -6,18 +6,21 @@ describe 'Test Folder Handling' do
   include Rack::Test::Methods
 
   before do
+    header 'CONTENT_TYPE', 'application/json'
     wipe_database
   end
 
-  describe 'Happy test' do
+  describe 'Account information' do
     it 'HAPPY: it should get account details' do
       data = DATA[:accounts][0]
       account = SecretSheath::Account.create(data)
 
+      header 'AUTHORIZATION', auth_header(data)
       get "/api/v1/accounts/#{account.username}"
       _(last_response.status).must_equal 200
 
-      result = JSON.parse(last_response.body)
+      response = JSON.parse(last_response.body)['data']['attributes']
+      result = response['account']['attributes']
       _(result['id']).must_equal account.id
       _(result['username']).must_equal account.username
       _(result['email']).must_equal account.email
@@ -25,41 +28,47 @@ describe 'Test Folder Handling' do
       _(result['password']).must_be_nil
       _(result['password_digest']).must_be_nil
     end
+  end
 
+  describe 'Account creation' do
+    before do
+      @account_data = DATA[:accounts][2]
+    end
     it 'HAPPY: it should create a new account' do
-      post '/api/v1/accounts', DATA[:accounts][2].to_json, 'CONTENT_TYPE' => 'application/json'
+      post '/api/v1/accounts', 
+           SignedRequest.new(app.config).sign(@account_data).to_json
       _(last_response.status).must_equal 201
 
-      result = JSON.parse(last_response.body)
+      result = JSON.parse(last_response.body)['data']['attributes']
       account = SecretSheath::Account.first
 
-      _(result['data']['id']).must_equal account.id
-      _(result['data']['username']).must_equal account.username
-      _(result['data']['email']).must_equal account.email
+      _(result['id']).must_equal account.id
+      _(result['username']).must_equal account.username
+      _(result['email']).must_equal account.email
+      _(result['masterkey_salt']).must_be_nil
+      _(result['public_key']).must_be_nil
+      _(result['private_key_salt']).must_be_nil
       _(account.password?(DATA[:accounts][2]['password'])).must_equal true
       _(account.password?('wrong password')).must_equal false
     end
-  end
 
-  describe 'Sad test' do
-    it 'SAD: it should not get account details' do
-      get '/api/v1/accounts/should_not_exist'
-      _(last_response.status).must_equal 404
-
-      result = JSON.parse(last_response.body)
-      _(result['message']).must_equal 'Account not found'
-    end
-
-    it 'SAD: it should not create a new account' do
-      data = DATA[:accounts][0].clone
-      data['created_at'] = '1996-01-18'
-      post '/api/v1/accounts', data.to_json, 'CONTENT_TYPE' => 'application/json'
+    it 'BAD MASS_ASSIGNMENT: it should not create a new account' do
+      bad_data = DATA[:accounts][0].clone
+      bad_data['created_at'] = '1996-01-18'
+      post '/api/v1/accounts',
+           SignedRequest.new(app.config).sign(bad_data).to_json
 
       _(last_response.status).must_equal 400
       _(last_response.headers['Location']).must_be_nil
 
       result = JSON.parse(last_response.body)
       _(result['message']).must_equal 'Illegal Request'
+    end
+
+    it 'BAD SIGNED_REQUEST: should not accept unsigned requests' do
+      post 'api/v1/accounts', @account_data.to_json
+      _(last_response.status).must_equal 403
+      _(last_response.headers['Location']).must_be_nil
     end
   end
 end

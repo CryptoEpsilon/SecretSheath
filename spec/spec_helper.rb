@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
-ENV['RACK_ENV'] = 'test'
+require 'simplecov'
+SimpleCov.start
 
 require 'minitest/autorun'
 require 'minitest/rg'
@@ -8,6 +9,8 @@ require 'yaml'
 
 require_relative 'test_load_all'
 require_relative '../app/lib/secure_db'
+
+ENV['RACK_ENV'] = 'test'
 
 def wipe_database
   SecretSheath::Folder.map(&:destroy)
@@ -36,7 +39,6 @@ def authorization(account_data)
   { account: SecretSheath::Account.first(username: account['username']),
     scope: AuthScope.new(token.scope) }
 end
-
 
 DATA = {
   keys: YAML.safe_load(File.read('app/db/seeds/keys_seed.yml')),

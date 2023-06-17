@@ -6,19 +6,19 @@ describe 'Test key Handling' do
   before do
     wipe_database
 
-    SecretSheath::Folder.create(name: 'default', description: 'default folder').save
+    account = SecretSheath::Account.create(username: 'test', password: 'passrand', email: 'test@mail.com')
+    account.add_owned_folder(name: 'default')
+    ProtectedKey.setup(account.assemble_masterkey('passrand'))
   end
 
   it 'HAPPY: should retrieve correct data from database' do
     data = DATA[:keys][0].clone
     folder_id = SecretSheath::Folder.first(name: 'default').id
-    data[:content] = SecureDB.generate_key
     key = SecretSheath::CreateKeyForFolder.call(folder_id:, key_data: data)
     _(key.name).must_equal data['name']
     _(key.description).must_equal data['description']
-    _(key.content).must_equal data[:content]
     _(key.alias).wont_equal data['alias']
-    _(key.alias).must_equal key.id[0..7]
+    _(key.short_alias).must_equal key.alias[0..7]
   end
 
   it 'SECURITY: should not use deterministic integer' do
@@ -26,7 +26,7 @@ describe 'Test key Handling' do
     folder_id = SecretSheath::Folder.first(name: 'default').id
     key = SecretSheath::CreateKeyForFolder.call(folder_id:, key_data: data)
 
-    _(key.id.is_a?(Numeric)).must_equal false
+    _(key.alias.is_a?(Numeric)).must_equal false
   end
 
   it 'SECURITY: should not store key in plain text' do

@@ -10,6 +10,13 @@ module SecretSheath
       end
     end
 
+    # Error for key not found
+    class KeyNotFound < StandardError
+      def message
+        'Key not found'
+      end
+    end
+
     def self.call(auth:, key:, accessor_email:)
       invitee = Account.first(email: accessor_email)
       policy = SharingRequestPolicy.new(

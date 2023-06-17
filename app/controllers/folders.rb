@@ -26,6 +26,15 @@ module SecretSheath
       end
 
       routing.on String do |folder_name|
+        # GET api/v1/folders/[name]/keys
+        routing.get 'keys' do
+          folder = @auth_account.owned_folders_dataset.first(name: folder_name)
+          keys = folder.keys
+          keys ? { data: keys }.to_json : raise('No Keys')
+        rescue StandardError => e
+          routing.halt 404, { message: e.message }.to_json
+        end
+
         # GET api/v1/folders/[name]
         routing.get do
           @req_folder = @auth_account.owned_folders_dataset.first(name: folder_name)
@@ -46,12 +55,6 @@ module SecretSheath
           routing.halt 404, { message: e.message }.to_json
         rescue DeleteFolder::ForbiddenError => e
           routing.halt 403, { message: e.message }.to_json
-        end
-
-        # GET api/v1/folders/[name]/keys
-        routing.get 'keys' do
-          keys = Folder.first(name: folder_name).keys
-          keys ? keys.to_json : raise('No Keys')
         end
       rescue StandardError => e
         puts "ERROR: #{e.inspect}"
@@ -75,10 +78,9 @@ module SecretSheath
 
         response.status = 201
         response['Location'] = "#{@folder_route}/#{new_folder.id}"
-        { message: 'Folder create',
-          id: new_folder.id,
-          name: new_folder.name,
-          created_at: new_folder.created_at }.to_json
+        { message: 'Folder created', data: new_folder.to_h }.to_json
+      rescue CreateFolderForOwner::DuplicateFolderError => e
+        routing.halt 409, { message: e.message }.to_json
       rescue Sequel::MassAssignmentRestriction
         Api.logger.warn "[MASS-ASSIGNMENT]: Attempt to set disallowed column: #{new_req}"
         routing.halt 400, { message: 'Invalid folder request' }.to_json

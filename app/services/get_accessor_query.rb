@@ -10,13 +10,20 @@ module SecretSheath
       end
     end
 
+    # Error for key not found
+    class KeyNotFound < StandardError
+      def message
+        'Key not found'
+      end
+    end
+
     def self.call(auth:, key:)
       policy = KeyPolicy.new(
         auth[:account], key, auth[:scope]
       )
       raise ForbiddenError unless policy.can_get_accessors?
 
-      key.shared_with
+      key.accessors
     end
   end
 end

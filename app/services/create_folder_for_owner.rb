@@ -10,7 +10,14 @@ module SecretSheath
       end
     end
 
+    class DuplicateFolderError < StandardError
+      def message
+        'Folder already exists'
+      end
+    end
+
     def self.call(auth:, folder_data:)
+      raise DuplicateFolderError if auth[:account].owned_folders.find { |f| f.name == folder_data['name'] }
       raise ForbiddenError unless auth[:scope].can_write?('folders', folder_data['name'])
 
       auth[:account].add_owned_folder(folder_data)

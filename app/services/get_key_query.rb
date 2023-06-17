@@ -13,7 +13,7 @@ module SecretSheath
     # Error for cannot find a project
     class NotFoundError < StandardError
       def message
-        'We could not find that Key'
+        'We could not find Key'
       end
     end
 

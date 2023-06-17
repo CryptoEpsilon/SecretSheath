@@ -3,7 +3,7 @@
 require_relative '../lib/securable'
 
 module SecretSheath
-  # Add a collaborator to another owner's existing project
+  # Encrypt data with given key
   class EncryptData
     ONE_MINUTE = 60
     ONE_HOUR = 60 * 60
@@ -13,14 +13,14 @@ module SecretSheath
     ONE_YEAR = ONE_MONTH * 12
 
     extend Securable
-    # Error for owner cannot be collaborator
+    # Error access forbidden
     class ForbiddenError < StandardError
       def message
         'You are not allowed to access that Key'
       end
     end
 
-    # Error for cannot find a project
+    # Error for cannot find a key
     class NotFoundError < StandardError
       def message
         'We could not find that Key'

@@ -11,6 +11,7 @@ GEM
     crack (0.4.5)
       rexml
     date (3.3.3)
+    docile (1.4.0)
     domain_name (0.5.20190701)
       unf (>= 0.0.5, < 1.0.0)
     ffi (1.15.5)
@@ -88,6 +89,12 @@ GEM
     sequel (5.67.0)
     sequel-seed (1.1.2)
       sequel (>= 4.49.0)
+    simplecov (0.22.0)
+      docile (~> 1.1)
+      simplecov-html (~> 0.11)
+      simplecov_json_formatter (~> 0.1)
+    simplecov-html (0.12.3)
+    simplecov_json_formatter (0.1.4)
     sqlite3 (1.6.2-x86_64-linux)
     thor (1.2.1)
     time (0.2.2)
@@ -126,6 +133,7 @@ DEPENDENCIES
   rubocop-performance
   sequel (~> 5.55)
   sequel-seed
+  simplecov
   sqlite3 (~> 1.4)
   time
   webmock

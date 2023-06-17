@@ -3,7 +3,7 @@
 require_relative '../lib/securable'
 
 module SecretSheath
-  # Add a collaborator to another owner's existing project
+  # Decrypt data with given key
   class DecryptData
     extend Securable
     # Error for owner cannot be collaborator
@@ -13,7 +13,7 @@ module SecretSheath
       end
     end
 
-    # Error for cannot find a project
+    # Error for cannot find a key
     class NotFoundError < StandardError
       def message
         'We could not find that Key'

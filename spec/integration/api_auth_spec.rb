@@ -19,26 +19,29 @@ describe 'Test Authentication Routes' do
     it 'HAPPY: should authenticate valid credentials' do
       credentials = { username: @account_data['username'],
                       password: @account_data['password'] }
-      post 'api/v1/auth/authenticate', credentials.to_json, @req_header
+      post 'api/v1/auth/authenticate',
+           SignedRequest.new(app.config).sign(credentials).to_json,
+           @req_header
 
-      auth_account = JSON.parse(last_response.body)
+      auth_account = JSON.parse(last_response.body)['data']
+      account = auth_account['attributes']['account']['attributes']
       _(last_response.status).must_equal 200
-      _(auth_account['username']).must_equal @account.username
-      _(auth_account['email']).must_equal @account.email
-      _(auth_account['id']).must_equal @account.id
+      _(account['username']).must_equal @account.username
+      _(account['email']).must_equal @account.email
+      _(account['id']).must_equal @account.id
     end
 
     it 'BAD: should not authenticate invalid password' do
-      credentials = { username: @account_data['username'],
-                      password: 'fakepassword' }
+      bad_credentials = { username: @account_data['username'],
+                          password: 'fakepassword' }
 
-      assert_output(/invalid/i, '') do
-        post 'api/v1/auth/authenticate', credentials.to_json, @req_header
-      end
+      post 'api/v1/auth/authenticate',
+           SignedRequest.new(app.config).sign(bad_credentials).to_json,
+           @req_header
 
       result = JSON.parse(last_response.body)
 
-      _(last_response.status).must_equal 403
+      _(last_response.status).must_equal 401
       _(result['message']).wont_be_nil
       _(result['attributes']).must_be_nil
     end

@@ -27,15 +27,19 @@ module SecretSheath
       # POST api/v1/decrypt/[folder_name]/[key_alias]
       routing.post String, String do |folder_name, key_alias|
         dec_req = JSON.parse(routing.body.read)
-        key = Account.first(username: @auth_account[:username])
-                     .owned_folders_dataset.first(name: folder_name)
-                     .keys_dataset.first(alias: key_alias)
+        folder = Account.first(username: @auth_account[:username])
+                        .owned_folders_dataset.first(name: folder_name)
+        raise DecryptData::NotFoundError unless folder
+
+        key = folder.keys_dataset.first(alias: key_alias)
         decrypted_data = DecryptData.call(
           auth: @auth,
           key:,
           secret_data: dec_req['ciphertext']
         )
         { data: decrypted_data }.to_json
+      rescue DecryptData::NotFoundError => e
+        routing.halt(404, { message: e.message }.to_json)
       rescue DecryptData::ForbiddenError => e
         routing.halt(403, { message: e.message }.to_json)
       rescue SecretData::InvalidSecretError => e

@@ -53,6 +53,7 @@ gem 'rerun'
 
 # Quality
 gem 'rubocop'
+gem 'simplecov'
 
 # logger
 gem 'logger'
